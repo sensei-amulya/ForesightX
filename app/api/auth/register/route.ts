@@ -32,7 +32,7 @@ export async function POST(req: Request) {
             },
         });
 
-        const token = generateToken({
+        const token = await generateToken({
             userId: user.id,
             orgId: org.id,
             role: user.role,

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { verifyToken } from "@/lib/token";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
 
     if (!authHeader) {
@@ -12,7 +12,7 @@ export function middleware(req: NextRequest) {
     const token = authHeader.split(" ")[1];
 
     try {
-        const decoded = verifyToken(token) as any;
+        const decoded = await verifyToken(token) as any;
 
         const requestHeaders = new Headers(req.headers);
         requestHeaders.set("x-org-id", decoded.orgId);
