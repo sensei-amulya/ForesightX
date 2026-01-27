@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function CsvUploadPage() {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -18,8 +19,6 @@ export default function CsvUploadPage() {
         try {
             const payload = JSON.parse(atob(token.split(".")[1]));
             if (payload.role === "VIEWER") {
-                // Viewers shouldn't be here.
-                // The API will block them, but UI should also redirect/hide.
                 router.push("/dashboard");
             }
         } catch (e) {
@@ -59,32 +58,77 @@ export default function CsvUploadPage() {
         }
     }
 
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setFile(e.dataTransfer.files[0]);
+        }
+    };
+
     return (
-        <main className="p-8">
-            <h1 className="text-xl font-bold mb-4">Upload Metrics CSV</h1>
-            <div className="bg-white p-6 rounded shadow max-w-lg">
-                <p className="mb-4 text-gray-600 text-sm">
-                    Upload a CSV file with columns: date, revenue, orders, customers.
-                </p>
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={e => setFile(e.target.files?.[0] || null)}
-                    className="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100
-                        mb-4"
-                />
-                <button
-                    onClick={upload}
-                    disabled={!file || loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50 w-full"
+        <main>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Upload Metrics</h1>
+
+            <div className="bg-white p-8 rounded-xl shadow-sm border max-w-2xl">
+                <div className="mb-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">Import CSV Data</h2>
+                    <p className="text-sm text-gray-500">
+                        Upload a CSV file containing <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">date</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">revenue</code>, <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">orders</code>, and <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">customers</code> columns.
+                    </p>
+                </div>
+
+                <div
+                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-400 hover:bg-gray-50 bg-white"
+                        }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
                 >
-                    {loading ? "Uploading..." : "Upload CSV"}
-                </button>
+                    <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <span className="text-2xl">☁️</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            {file ? (
+                                <span className="font-semibold text-gray-900">{file.name}</span>
+                            ) : (
+                                <>
+                                    <span className="font-semibold text-blue-600 cursor-pointer">Click to upload</span> or drag and drop
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-400">CSV files up to 10MB</p>
+                    </div>
+                    <input
+                        type="file"
+                        accept=".csv"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        onChange={e => setFile(e.target.files?.[0] || null)}
+                    />
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={upload}
+                        disabled={!file || loading}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                    >
+                        {loading ? "Uploading..." : "Upload CSV"}
+                    </button>
+                </div>
             </div>
         </main>
     );

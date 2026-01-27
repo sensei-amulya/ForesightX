@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export default function DashboardPage() {
     const [kpis, setKpis] = useState<any>(null);
     const [trend, setTrend] = useState<any[]>([]);
     const [range, setRange] = useState("7d");
+    const [isAdmin, setIsAdmin] = useState(false); // Kept for any page-specific logic if needed
 
     function getDateRange(range: string) {
         const end = new Date();
@@ -31,13 +32,8 @@ export default function DashboardPage() {
         const token = localStorage.getItem("token");
         const { start, end } = getDateRange(range);
 
-        // Reset data to trigger loading state if needed, or just let it update
-        // setKpis(null); // Optional: if we want to show loading spinner on every switch
-
         fetch(`/api/metrics/kpis?start=${start}&end=${end}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
             .then(data => setKpis(data));
@@ -53,7 +49,6 @@ export default function DashboardPage() {
                 if (Array.isArray(data)) {
                     setTrend(data);
                 } else {
-                    console.error("Trends data is not an array:", data);
                     setTrend([]);
                 }
             })
@@ -63,105 +58,94 @@ export default function DashboardPage() {
             });
     }, [range]);
 
-    const [isAdmin, setIsAdmin] = useState(false);
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                window.location.href = "/login";
-                return;
-            }
-
-            try {
-                // Simple client-side check. Real security is on the backend.
-                // Token payload is the second part (index 1)
-                const payload = JSON.parse(atob(token.split(".")[1]));
-                if (payload.role === "ADMIN") {
-                    setIsAdmin(true);
-                }
-            } catch (e) {
-                console.error("Failed to decode token", e);
-            }
-        }
-    }, []);
-
-    if (!kpis) return <p className="p-6 text-gray-500">Loading analytics...</p>;
+    if (!kpis) return (
+        <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-500 font-medium">Loading analytics...</div>
+        </div>
+    );
 
     return (
-        <main className="p-8 space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-                    {isAdmin && (
-                        <a
-                            href="/dashboard/users"
-                            className="text-sm text-blue-600 hover:underline mt-1 inline-block"
-                        >
-                            Manage Users &rarr;
-                        </a>
-                    )}
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem("token");
-                            window.location.href = "/login";
-                        }}
-                        className="px-4 py-1 text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded transition-colors"
-                    >
-                        Logout
-                    </button>
+        <main className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h1 className="text-3xl font-bold text-gray-900">Analytics Overview</h1>
+
+                <div className="flex bg-white rounded-lg p-1 shadow-sm border">
                     {["7d", "30d"].map(r => (
                         <button
                             key={r}
                             onClick={() => setRange(r)}
-                            className={`px-4 py-1 rounded ${range === r
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200"
+                            className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${range === r
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                                 }`}
                         >
-                            Last {r === "7d" ? "7 Days" : "30 Days"}
+                            {r === "7d" ? "Last 7 Days" : "Last 30 Days"}
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <KpiCard title="Revenue" value={`₹${kpis.totalRevenue}`} />
-                <KpiCard title="Orders" value={kpis.totalOrders} />
-                <KpiCard title="Customers" value={kpis.totalCustomers} />
-                <KpiCard title="Avg / Day" value={`₹${kpis.avgDailyRevenue}`} />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <KpiCard title="Total Revenue" value={`₹${kpis.totalRevenue}`} icon="💸" />
+                <KpiCard title="Total Orders" value={kpis.totalOrders} icon="📦" />
+                <KpiCard title="Total Customers" value={kpis.totalCustomers} icon="👥" />
+                <KpiCard title="Avg. Daily Revenue" value={`₹${kpis.avgDailyRevenue}`} icon="📊" />
             </div>
 
-            <div className="bg-white shadow rounded p-4">
-                <h2 className="text-xl font-bold mb-4">Revenue Trend</h2>
+            <div className="bg-white shadow-sm border rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue Trend</h2>
                 {trend.length === 0 ? (
-                    <p className="text-gray-500 mt-6 h-[300px] flex items-center justify-center">
-                        No data for selected range
-                    </p>
+                    <div className="flex items-center justify-center h-[350px] bg-gray-50 rounded-lg border border-dashed">
+                        <p className="text-gray-500">No data available for this period</p>
+                    </div>
                 ) : (
-                    <LineChart width={600} height={300} data={trend}>
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line
-                            type="monotone"
-                            dataKey="revenue"
-                            stroke="#2563eb"
-                        />
-                    </LineChart>
+                    <div className="h-[350px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={trend}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="#6B7280"
+                                    tick={{ fontSize: 12 }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    stroke="#6B7280"
+                                    tick={{ fontSize: 12 }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => `₹${value}`}
+                                />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="revenue"
+                                    stroke="#2563eb"
+                                    strokeWidth={3}
+                                    dot={{ r: 4, strokeWidth: 2 }}
+                                    activeDot={{ r: 6 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 )}
             </div>
         </main>
     );
 }
 
-function KpiCard({ title, value }: { title: string; value: any }) {
+function KpiCard({ title, value, icon }: { title: string; value: any; icon: string }) {
     return (
-        <div className="bg-white shadow rounded p-4">
-            <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-2xl font-bold mt-2">{value}</p>
+        <div className="bg-white shadow-sm border rounded-xl p-6 hover:shadow-md transition duration-200">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+                <span className="text-2xl">{icon}</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">{value}</p>
         </div>
     );
 }
