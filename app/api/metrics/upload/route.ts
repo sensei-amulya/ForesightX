@@ -7,6 +7,15 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
     try {
         const orgId = req.headers.get("x-org-id");
+        const role = req.headers.get("x-role");
+
+        if (role === "VIEWER") {
+            return NextResponse.json(
+                { error: "Insufficient permissions" },
+                { status: 403 }
+            );
+        }
+
         if (!orgId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }

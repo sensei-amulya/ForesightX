@@ -63,12 +63,45 @@ export default function DashboardPage() {
             });
     }, [range]);
 
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            try {
+                // Simple client-side check. Real security is on the backend.
+                // Token payload is the second part (index 1)
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                if (payload.role === "ADMIN") {
+                    setIsAdmin(true);
+                }
+            } catch (e) {
+                console.error("Failed to decode token", e);
+            }
+        }
+    }, []);
+
     if (!kpis) return <p className="p-6 text-gray-500">Loading analytics...</p>;
 
     return (
         <main className="p-8 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+                <div>
+                    <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+                    {isAdmin && (
+                        <a
+                            href="/dashboard/users"
+                            className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                        >
+                            Manage Users &rarr;
+                        </a>
+                    )}
+                </div>
                 <div className="flex gap-2">
                     {["7d", "30d"].map(r => (
                         <button
