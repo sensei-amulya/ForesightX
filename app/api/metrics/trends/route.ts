@@ -9,8 +9,22 @@ export async function GET(req: Request) {
         return new Response("Missing x-org-id header", { status: 400 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const start = searchParams.get("start");
+    const end = searchParams.get("end");
+
     const metrics = await prisma.metric.findMany({
-        where: { orgId },
+        where: {
+            orgId,
+            ...(start && end
+                ? {
+                    date: {
+                        gte: new Date(start),
+                        lte: new Date(end),
+                    },
+                }
+                : {}),
+        },
         orderBy: { date: "asc" },
     });
 

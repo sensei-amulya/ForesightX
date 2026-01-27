@@ -21,7 +21,50 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 Multi-tenant analytics platform for small businesses.
 
-## Stack
-- Next.js + TypeScript
-- PostgreSQL + Prisma
-- JWT Auth
+## Features
+- **Multi-tenant Authentication**: Secure login with organization isolation.
+- **KPI Analytics & Trends**: Visual dashboards with revenue, orders, and customer metrics.
+- **Date-Range Filtering**: Filter analytics by last 7 or 30 days.
+- **CSV Bulk Upload**: Easily upload large datasets for analysis.
+- **Secure Tenant Isolation**: Data privacy ensured via strict org-level filtering.
+
+## Architecture
+- **Framework**: Next.js (App Router)
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT-based auth with custom middleware
+- **Styling**: Tailwind CSS / Vanilla CSS
+- **Visualization**: Recharts for trend analysis
+
+## Screenshots
+> *(Screenshots placeholder - Add dashboard images here)*
+
+## How to Run
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd foresightx
+   ```
+
+2. **Setup Environment Variables**
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/foresightx"
+   JWT_SECRET="your-secret-key"
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+4. **Run Database Migrations**
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

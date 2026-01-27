@@ -12,7 +12,6 @@ export async function POST(req: Request) {
         }
 
         const formData = await req.formData();
-        console.log("FormData Keys:", Array.from(formData.keys()));
         const file = formData.get("file") as File;
 
         if (!file) {

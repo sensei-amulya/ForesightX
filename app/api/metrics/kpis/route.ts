@@ -10,8 +10,22 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Org missing" }, { status: 401 });
         }
 
+        const { searchParams } = new URL(req.url);
+        const start = searchParams.get("start");
+        const end = searchParams.get("end");
+
         const metrics = await prisma.metric.findMany({
-            where: { orgId },
+            where: {
+                orgId,
+                ...(start && end
+                    ? {
+                        date: {
+                            gte: new Date(start),
+                            lte: new Date(end),
+                        },
+                    }
+                    : {}),
+            },
         });
 
         const totalRevenue = metrics.reduce((sum, m) => sum + m.revenue, 0);
