@@ -103,6 +103,15 @@ export default function DashboardPage() {
                     )}
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem("token");
+                            window.location.href = "/login";
+                        }}
+                        className="px-4 py-1 text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 rounded transition-colors"
+                    >
+                        Logout
+                    </button>
                     {["7d", "30d"].map(r => (
                         <button
                             key={r}

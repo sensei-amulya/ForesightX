@@ -7,6 +7,9 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [newUserEmail, setNewUserEmail] = useState("");
+    const [newUserRole, setNewUserRole] = useState("VIEWER");
+
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -29,6 +32,42 @@ export default function UsersPage() {
                 setLoading(false);
             });
     }, []);
+
+    async function createUser() {
+        if (!newUserEmail) return;
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch("/api/users/create", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: newUserEmail, role: newUserRole }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.error || "Failed using create");
+                return;
+            }
+
+            alert(`User created! Default password: ${data.defaultPassword}`);
+
+            // Refresh list
+            const refreshRes = await fetch("/api/users", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const refreshData = await refreshRes.json();
+            setUsers(refreshData);
+            setNewUserEmail(""); // Reset input
+        } catch (e) {
+            console.error(e);
+            alert("An error occurred");
+        }
+    }
 
     function updateRole(userId: string, newRole: string) {
         const token = localStorage.getItem("token");
@@ -56,7 +95,39 @@ export default function UsersPage() {
 
     return (
         <main className="p-8">
-            <h1 className="text-2xl font-bold mb-4">User Management</h1>
+            <h1 className="text-2xl font-bold mb-6">User Management</h1>
+
+            <div className="bg-white p-6 rounded shadow mb-8">
+                <h2 className="font-bold mb-4 text-lg">Create New User</h2>
+                <div className="flex gap-4 items-end">
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-1">Email</label>
+                        <input
+                            className="border p-2 rounded w-64"
+                            placeholder="user@example.com"
+                            value={newUserEmail}
+                            onChange={e => setNewUserEmail(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-1">Role</label>
+                        <select
+                            className="border p-2 rounded w-32"
+                            value={newUserRole}
+                            onChange={e => setNewUserRole(e.target.value)}
+                        >
+                            <option value="VIEWER">VIEWER</option>
+                            <option value="MANAGER">MANAGER</option>
+                        </select>
+                    </div>
+                    <button
+                        onClick={createUser}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                    >
+                        Create User
+                    </button>
+                </div>
+            </div>
 
             <div className="bg-white shadow rounded overflow-hidden">
                 <table className="w-full text-left">
