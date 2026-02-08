@@ -16,14 +16,10 @@ export async function GET(req: Request) {
     const metrics = await prisma.metric.findMany({
         where: {
             orgId,
-            ...(start && end
-                ? {
-                    date: {
-                        gte: new Date(start),
-                        lte: new Date(end),
-                    },
-                }
-                : {}),
+            date: {
+                gte: start ? new Date(start) : new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1), // Default to last month if no range
+                lte: end ? new Date(end) : new Date(),
+            },
         },
         orderBy: { date: "asc" },
     });
@@ -32,6 +28,8 @@ export async function GET(req: Request) {
         metrics.map(m => ({
             date: m.date.toISOString().split("T")[0],
             revenue: m.revenue,
+            orders: m.orders,
+            customers: m.customers,
         }))
     );
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { comparePassword, generateToken } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -19,6 +20,10 @@ export async function POST(req: Request) {
         userId: user.id,
         orgId: user.orgId,
         role: user.role,
+    });
+
+    await logAction(user.orgId, user.id, "USER_LOGIN", {
+        method: "email",
     });
 
     return NextResponse.json({ token });

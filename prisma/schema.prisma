@@ -40,3 +40,12 @@ enum Role {
   MANAGER
   VIEWER
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  orgId     String
+  userId    String
+  action    String
+  metadata  String?
+  createdAt DateTime @default(now())
+}

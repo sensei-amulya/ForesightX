@@ -17,7 +17,9 @@ export default function CsvUploadPage() {
         }
 
         try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const payload = JSON.parse(atob(base64));
             if (payload.role === "VIEWER") {
                 router.push("/dashboard");
             }
@@ -90,7 +92,7 @@ export default function CsvUploadPage() {
                 </div>
 
                 <div
-                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-400 hover:bg-gray-50 bg-white"
+                    className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-400 hover:bg-gray-50 bg-white"
                         }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}

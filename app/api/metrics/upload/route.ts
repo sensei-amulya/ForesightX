@@ -2,11 +2,13 @@ export const runtime = "nodejs";
 
 import { prisma } from "@/lib/db";
 import { parseCSV } from "@/lib/csv";
+import { logAction } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
         const orgId = req.headers.get("x-org-id");
+        const userId = req.headers.get("x-user-id");
         const role = req.headers.get("x-role");
 
         if (role === "VIEWER") {
@@ -39,6 +41,12 @@ export async function POST(req: Request) {
                 customers: r.customers,
             })),
         });
+
+        if (userId) {
+            await logAction(orgId, userId, "CSV_UPLOAD", {
+                rowsInserted: rows.length,
+            });
+        }
 
         return NextResponse.json({
             message: "CSV uploaded successfully",
