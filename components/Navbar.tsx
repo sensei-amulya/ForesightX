@@ -23,7 +23,7 @@ export default function Navbar() {
                         <Link href="#pricing" className="hover:text-blue-600 transition">
                             Pricing
                         </Link>
-                        <Link href="#" className="hover:text-blue-600 transition">
+                        <Link href="/about" className="hover:text-blue-600 transition">
                             About
                         </Link>
                     </div>
