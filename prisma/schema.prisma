@@ -14,6 +14,7 @@ model Organization {
   createdAt DateTime @default(now())
   metrics   Metric[]
   users     User[]
+  goals     Goal[]
 }
 
 model User {
@@ -23,6 +24,7 @@ model User {
   role     Role
   orgId    String
   org      Organization @relation(fields: [orgId], references: [id])
+  lastActive DateTime?
 }
 
 model Metric {
@@ -41,6 +43,7 @@ enum Role {
   VIEWER
 }
 
+
 model AuditLog {
   id        String   @id @default(uuid())
   orgId     String
@@ -48,4 +51,20 @@ model AuditLog {
   action    String
   metadata  String?
   createdAt DateTime @default(now())
+}
+
+model Goal {
+  id        String   @id @default(uuid())
+  orgId     String
+  type      GoalType
+  target    Float
+  month     String
+  createdAt DateTime @default(now())
+  org       Organization @relation(fields: [orgId], references: [id])
+}
+
+enum GoalType {
+  REVENUE
+  ORDERS
+  CUSTOMERS
 }

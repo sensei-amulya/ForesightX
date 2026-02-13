@@ -26,5 +26,11 @@ export async function POST(req: Request) {
         method: "email",
     });
 
+    // Update lastActive
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { lastActive: new Date() },
+    });
+
     return NextResponse.json({ token });
 }

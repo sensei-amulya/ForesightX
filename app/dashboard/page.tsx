@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 import AnalysisComponent from "./components/AnalysisComponent";
+import GoalTracker from "./components/GoalTracker";
+import ActivityFeed from "./components/ActivityFeed";
 
 export default function DashboardPage() {
     const [kpis, setKpis] = useState<any>(null);
@@ -16,6 +18,8 @@ export default function DashboardPage() {
     const [selectedDateMetrics, setSelectedDateMetrics] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [monthlyMetrics, setMonthlyMetrics] = useState<any[]>([]);
+
+    const [isActivityOpen, setIsActivityOpen] = useState(false);
 
     function getDateRange(range: string) {
         const end = new Date();
@@ -155,6 +159,12 @@ export default function DashboardPage() {
                 <h1 className="text-3xl font-bold text-gray-900">Analytics Overview</h1>
 
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsActivityOpen(true)}
+                        className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium text-sm flex items-center gap-2"
+                    >
+                        📜 Activity Log
+                    </button>
                     <a
                         href="/dashboard/add-metric"
                         className="bg-blue-600 text-white px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition font-medium text-sm flex items-center gap-2"
@@ -186,6 +196,15 @@ export default function DashboardPage() {
 
             {/* AI Analysis Card */}
             <AnalysisComponent />
+
+            {/* Goal Tracker */}
+            <div className="mb-8">
+                <GoalTracker
+                    currentRevenue={kpis.totalRevenue}
+                    currentOrders={kpis.totalOrders}
+                    currentCustomers={kpis.totalCustomers}
+                />
+            </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -289,6 +308,21 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Activity Feed Modal */}
+            {isActivityOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative animate-in fade-in zoom-in duration-200 max-h-[80vh] overflow-y-auto">
+                        <button
+                            onClick={() => setIsActivityOpen(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                        >
+                            ✕
+                        </button>
+                        <ActivityFeed />
+                    </div>
+                </div>
+            )}
 
             {/* Metric Details Modal */}
             {isModalOpen && selectedDateMetrics && (
