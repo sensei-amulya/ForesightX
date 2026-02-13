@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
+import AnalysisComponent from "./components/AnalysisComponent";
+
 export default function DashboardPage() {
     const [kpis, setKpis] = useState<any>(null);
     const [trend, setTrend] = useState<any[]>([]);
@@ -144,6 +146,8 @@ export default function DashboardPage() {
     const { days, firstDay } = getDaysInMonth(currentDate);
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+
+
     return (
         <main className="space-y-8 pb-10">
             {/* Header */}
@@ -179,6 +183,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* AI Analysis Card */}
+            <AnalysisComponent />
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
