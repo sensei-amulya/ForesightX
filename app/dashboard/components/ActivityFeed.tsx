@@ -35,29 +35,33 @@ export default function ActivityFeed() {
         fetchLogs();
     }, []);
 
-    if (loading) return <div className="h-48 bg-gray-50 rounded-xl animate-pulse"></div>;
+    if (loading) return <div className="h-48 bg-slate-50 rounded-xl animate-pulse border border-slate-200"></div>;
 
     if (logs.length === 0) {
         return (
-            <div className="bg-white p-6 rounded-xl shadow-sm border h-full">
-                <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Activity</h2>
-                <p className="text-gray-500 text-sm">No recent activity found.</p>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col items-center justify-center text-center">
+                <div className="p-3 bg-slate-50 rounded-full mb-3">
+                    <span className="text-2xl">📭</span>
+                </div>
+                <h2 className="text-lg font-bold text-slate-800">No Activity</h2>
+                <p className="text-slate-500 text-sm">Recent actions will appear here.</p>
             </div>
         )
     }
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border h-full">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Activity ⚡</h2>
-            <div className="space-y-4">
+        <div className="bg-white p-0 h-full">
+            <div className="space-y-0 divide-y divide-slate-100">
                 {logs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                            📝
+                    <div key={log.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+                        <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center text-violet-600 shrink-0 border border-violet-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-gray-900">{log.action}</p>
-                            <p className="text-xs text-gray-500">
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-slate-900">{log.action}</p>
+                            <p className="text-xs text-slate-500">
                                 {new Date(log.createdAt).toLocaleString(undefined, {
                                     month: "short",
                                     day: "numeric",

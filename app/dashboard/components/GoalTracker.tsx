@@ -81,18 +81,18 @@ export default function GoalTracker({ currentRevenue, currentOrders, currentCust
         const isSet = !!goal;
 
         return (
-            <div className="mb-4">
-                <div className="flex justify-between items-end mb-1">
-                    <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                        <span>{icon}</span> {label}
+            <div className="mb-5 last:mb-0">
+                <div className="flex justify-between items-end mb-2">
+                    <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                        <span className="text-lg">{icon}</span> {label}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
                         {prefix}{current.toLocaleString()} / {isSet ? `${prefix}${target.toLocaleString()}` : "Not set"}
                     </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 relative overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-3 relative overflow-hidden">
                     <div
-                        className={`bg-blue-600 h-2.5 rounded-full transition-all duration-500 ${percentage >= 100 ? "bg-green-500" : ""}`}
+                        className={`h-3 rounded-full transition-all duration-1000 ease-out ${percentage >= 100 ? "bg-emerald-500" : "bg-violet-600"}`}
                         style={{ width: `${percentage}%` }}
                     ></div>
                 </div>
@@ -100,69 +100,78 @@ export default function GoalTracker({ currentRevenue, currentOrders, currentCust
         );
     };
 
-    if (loading) return <div className="animate-pulse h-32 bg-gray-100 rounded-xl"></div>;
+    if (loading) return <div className="animate-pulse h-32 bg-slate-50 rounded-xl border border-slate-200"></div>;
 
     const revenueGoal = getGoal("REVENUE");
     const ordersGoal = getGoal("ORDERS");
     const customersGoal = getGoal("CUSTOMERS");
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold text-gray-800">Monthly Targets 🎯</h2>
+                <div>
+                    <h2 className="text-lg font-bold text-slate-900">Monthly Targets</h2>
+                    <p className="text-xs text-slate-500">Track your progress against goals</p>
+                </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-sm text-violet-600 hover:text-violet-800 font-semibold bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg transition"
                 >
                     + Set Goals
                 </button>
             </div>
 
-            {renderProgressBar("Revenue", currentRevenue, revenueGoal, "💸", "₹")}
-            {renderProgressBar("Orders", currentOrders, ordersGoal, "📦")}
-            {renderProgressBar("Customers", currentCustomers, customersGoal, "👥")}
+            <div className="space-y-1">
+                {renderProgressBar("Revenue", currentRevenue, revenueGoal, "💸", "₹")}
+                {renderProgressBar("Orders", currentOrders, ordersGoal, "📦")}
+                {renderProgressBar("Customers", currentCustomers, customersGoal, "👥")}
+            </div>
 
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 relative animate-in fade-in zoom-in duration-200">
-                        <h3 className="text-lg font-bold mb-4">Set Monthly Goal</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative animate-in fade-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-bold mb-1 text-slate-900">Set Monthly Goal</h3>
+                        <p className="text-sm text-slate-500 mb-6">Define targets for {new Date().toLocaleString('default', { month: 'long' })}</p>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Goal Type</label>
-                                <select
-                                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                                    value={selectedType}
-                                    onChange={(e) => setSelectedType(e.target.value as any)}
-                                >
-                                    <option value="REVENUE">Revenue</option>
-                                    <option value="ORDERS">Orders</option>
-                                    <option value="CUSTOMERS">Customers</option>
-                                </select>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Goal Type</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-violet-500 appearance-none bg-white font-medium text-slate-700"
+                                        value={selectedType}
+                                        onChange={(e) => setSelectedType(e.target.value as any)}
+                                    >
+                                        <option value="REVENUE">Revenue</option>
+                                        <option value="ORDERS">Orders</option>
+                                        <option value="CUSTOMERS">Customers</option>
+                                    </select>
+                                    <div className="absolute right-3 top-3.5 pointer-events-none text-slate-500">▼</div>
+                                </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Target Value</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Target Value</label>
                                 <input
                                     type="number"
-                                    className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-violet-500 font-medium text-slate-900"
                                     placeholder="e.g. 50000"
                                     value={targetValue}
                                     onChange={(e) => setTargetValue(e.target.value)}
                                 />
                             </div>
 
-                            <div className="flex gap-2 justify-end pt-2">
+                            <div className="flex gap-3 justify-end pt-4">
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm font-medium"
+                                    className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-semibold transition"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSetGoal}
                                     disabled={!targetValue}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    className="px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm hover:shadow"
                                 >
                                     Save Goal
                                 </button>

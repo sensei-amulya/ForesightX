@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { motion, Variants } from "framer-motion";
+
 
 import AnalysisComponent from "./components/AnalysisComponent";
 import GoalTracker from "./components/GoalTracker";
@@ -20,6 +22,29 @@ export default function DashboardPage() {
     const [monthlyMetrics, setMonthlyMetrics] = useState<any[]>([]);
 
     const [isActivityOpen, setIsActivityOpen] = useState(false);
+
+    // Animation Variants
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants: Variants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100
+            }
+        }
+    };
 
     function getDateRange(range: string) {
         const end = new Date();
@@ -116,8 +141,7 @@ export default function DashboardPage() {
     const handleDateClick = (day: number) => {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
-        const dateStr = new Date(year, month, day + 1).toISOString().split("T")[0]; // +1 because day is 1-indexed but JS Date needs correct day? Wait. day is 1..31. new Date(y, m, d) is correct. But toISOString might be affected by timezone.
-        // Better to match by string format YYYY-MM-DD
+        const dateStr = new Date(year, month, day + 1).toISOString().split("T")[0];
         const monthStr = (month + 1).toString().padStart(2, '0');
         const dayStr = day.toString().padStart(2, '0');
         const searchDate = `${year}-${monthStr}-${dayStr}`;
@@ -128,8 +152,6 @@ export default function DashboardPage() {
             setSelectedDateMetrics(metric);
             setIsModalOpen(true);
         } else {
-            // Optional: Allow adding if no metric? For now just showing details if exist.
-            // Or maybe show "No data"
             setSelectedDateMetrics({ date: searchDate, noData: true });
             setIsModalOpen(true);
         }
@@ -150,164 +172,171 @@ export default function DashboardPage() {
     const { days, firstDay } = getDaysInMonth(currentDate);
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-
-
     return (
         <main className="space-y-8 pb-10">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-3xl font-bold text-gray-900">Analytics Overview</h1>
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-8"
+            >
+                {/* Header */}
+                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h1 className="text-3xl font-bold text-gray-900">Analytics Overview</h1>
 
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setIsActivityOpen(true)}
-                        className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium text-sm flex items-center gap-2"
-                    >
-                        📜 Activity Log
-                    </button>
-                    <a
-                        href="/dashboard/add-metric"
-                        className="bg-blue-600 text-white px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition font-medium text-sm flex items-center gap-2"
-                    >
-                        <span>+</span> Add Data
-                    </a>
-                    <button
-                        onClick={exportReport}
-                        className="bg-green-600 text-white px-4 py-2 rounded shadow-sm hover:bg-green-700 transition font-medium text-sm"
-                    >
-                        Export CSV
-                    </button>
-                    <div className="flex bg-white rounded-lg p-1 shadow-sm border">
-                        {["7d", "30d"].map(r => (
-                            <button
-                                key={r}
-                                onClick={() => setRange(r)}
-                                className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${range === r
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                                    }`}
-                            >
-                                {r === "7d" ? "Last 7 Days" : "Last 30 Days"}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* AI Analysis Card */}
-            <AnalysisComponent />
-
-            {/* Goal Tracker */}
-            <div className="mb-8">
-                <GoalTracker
-                    currentRevenue={kpis.totalRevenue}
-                    currentOrders={kpis.totalOrders}
-                    currentCustomers={kpis.totalCustomers}
-                />
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <KpiCard title="Total Revenue" value={`₹${kpis.totalRevenue}`} icon="💸" />
-                <KpiCard title="Total Orders" value={kpis.totalOrders} icon="📦" />
-                <KpiCard title="Total Customers" value={kpis.totalCustomers} icon="👥" />
-                <KpiCard title="Avg. Daily Revenue" value={`₹${kpis.avgDailyRevenue}`} icon="📊" />
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Revenue Trend Chart */}
-                <div className="lg:col-span-2 bg-white shadow-sm border rounded-xl p-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue Trend</h2>
-                    {trend.length === 0 ? (
-                        <div className="flex items-center justify-center h-[350px] bg-gray-50 rounded-lg border border-dashed">
-                            <p className="text-gray-500">No data available for this period</p>
-                        </div>
-                    ) : (
-                        <div className="h-[350px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={trend}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                    <XAxis
-                                        dataKey="date"
-                                        stroke="#6B7280"
-                                        tick={{ fontSize: 12 }}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        dy={10}
-                                    />
-                                    <YAxis
-                                        stroke="#6B7280"
-                                        tick={{ fontSize: 12 }}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickFormatter={(value) => `₹${value}`}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="revenue"
-                                        stroke="#2563eb"
-                                        strokeWidth={3}
-                                        dot={{ r: 4, strokeWidth: 2 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-                </div>
-
-                {/* Calendar View */}
-                <div className="bg-white shadow-sm border rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Archive</h2>
-                        <div className="flex gap-2 text-sm text-gray-600">
-                            <button onClick={() => changeMonth(-1)} className="hover:text-black p-1">◀</button>
-                            <span className="font-medium min-w-[100px] text-center">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
-                            <button onClick={() => changeMonth(1)} className="hover:text-black p-1">▶</button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
-                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d}>{d}</div>)}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1">
-                        {Array.from({ length: firstDay }).map((_, i) => (
-                            <div key={`empty-${i}`} className="aspect-square"></div>
-                        ))}
-                        {Array.from({ length: days }).map((_, i) => {
-                            const day = i + 1;
-                            const monthStr = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-                            const dayStr = day.toString().padStart(2, '0');
-                            const dateStr = `${currentDate.getFullYear()}-${monthStr}-${dayStr}`;
-                            const hasData = monthlyMetrics.some(m => m.date === dateStr);
-
-                            return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setIsActivityOpen(true)}
+                            className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition font-medium text-sm flex items-center gap-2"
+                        >
+                            📜 Activity Log
+                        </button>
+                        <a
+                            href="/dashboard/add-metric"
+                            className="bg-blue-600 text-white px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition font-medium text-sm flex items-center gap-2"
+                        >
+                            <span>+</span> Add Data
+                        </a>
+                        <button
+                            onClick={exportReport}
+                            className="bg-green-600 text-white px-4 py-2 rounded shadow-sm hover:bg-green-700 transition font-medium text-sm"
+                        >
+                            Export CSV
+                        </button>
+                        <div className="flex bg-white rounded-lg p-1 shadow-sm border">
+                            {["7d", "30d"].map(r => (
                                 <button
-                                    key={day}
-                                    onClick={() => handleDateClick(day)}
-                                    className={`aspect-square rounded-full flex items-center justify-center text-sm transition
-                                        ${hasData
-                                            ? "bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 ring-1 ring-blue-300"
-                                            : "text-gray-400 hover:bg-gray-50"
-                                        }
-                                    `}
+                                    key={r}
+                                    onClick={() => setRange(r)}
+                                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${range === r
+                                        ? "bg-blue-600 text-white shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                        }`}
                                 >
-                                    {day}
+                                    {r === "7d" ? "Last 7 Days" : "Last 30 Days"}
                                 </button>
-                            );
-                        })}
+                            ))}
+                        </div>
                     </div>
-                    <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 justify-center">
-                        <div className="w-2 h-2 rounded-full bg-blue-100 ring-1 ring-blue-300"></div>
-                        <span>Data Available</span>
+                </motion.div>
+
+                {/* AI Analysis Card */}
+                <motion.div variants={itemVariants}>
+                    <AnalysisComponent />
+                </motion.div>
+
+                {/* Goal Tracker */}
+                <motion.div variants={itemVariants} className="mb-8">
+                    <GoalTracker
+                        currentRevenue={kpis.totalRevenue}
+                        currentOrders={kpis.totalOrders}
+                        currentCustomers={kpis.totalCustomers}
+                    />
+                </motion.div>
+
+                {/* KPI Cards */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <KpiCard title="Total Revenue" value={`₹${kpis.totalRevenue}`} icon="💸" />
+                    <KpiCard title="Total Orders" value={kpis.totalOrders} icon="📦" />
+                    <KpiCard title="Total Customers" value={kpis.totalCustomers} icon="👥" />
+                    <KpiCard title="Avg. Daily Revenue" value={`₹${kpis.avgDailyRevenue}`} icon="📊" />
+                </motion.div>
+
+                {/* Charts Row */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Revenue Trend Chart */}
+                    <div className="lg:col-span-2 bg-white shadow-sm border rounded-xl p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue Trend</h2>
+                        {trend.length === 0 ? (
+                            <div className="flex items-center justify-center h-[350px] bg-gray-50 rounded-lg border border-dashed">
+                                <p className="text-gray-500">No data available for this period</p>
+                            </div>
+                        ) : (
+                            <div className="h-[350px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={trend}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke="#6B7280"
+                                            tick={{ fontSize: 12 }}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            stroke="#6B7280"
+                                            tick={{ fontSize: 12 }}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value) => `₹${value}`}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="revenue"
+                                            stroke="#2563eb"
+                                            strokeWidth={3}
+                                            dot={{ r: 4, strokeWidth: 2 }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
                     </div>
-                </div>
-            </div>
+
+                    {/* Calendar View */}
+                    <div className="bg-white shadow-sm border rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900">Archive</h2>
+                            <div className="flex gap-2 text-sm text-gray-600">
+                                <button onClick={() => changeMonth(-1)} className="hover:text-black p-1">◀</button>
+                                <span className="font-medium min-w-[100px] text-center">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+                                <button onClick={() => changeMonth(1)} className="hover:text-black p-1">▶</button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
+                            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <div key={d}>{d}</div>)}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1">
+                            {Array.from({ length: firstDay }).map((_, i) => (
+                                <div key={`empty-${i}`} className="aspect-square"></div>
+                            ))}
+                            {Array.from({ length: days }).map((_, i) => {
+                                const day = i + 1;
+                                const monthStr = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+                                const dayStr = day.toString().padStart(2, '0');
+                                const dateStr = `${currentDate.getFullYear()}-${monthStr}-${dayStr}`;
+                                const hasData = monthlyMetrics.some(m => m.date === dateStr);
+
+                                return (
+                                    <button
+                                        key={day}
+                                        onClick={() => handleDateClick(day)}
+                                        className={`aspect-square rounded-full flex items-center justify-center text-sm transition
+                                            ${hasData
+                                                ? "bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 ring-1 ring-blue-300"
+                                                : "text-gray-400 hover:bg-gray-50"
+                                            }
+                                        `}
+                                    >
+                                        {day}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 justify-center">
+                            <div className="w-2 h-2 rounded-full bg-blue-100 ring-1 ring-blue-300"></div>
+                            <span>Data Available</span>
+                        </div>
+                    </div>
+                </motion.div>
+            </motion.div>
 
             {/* Activity Feed Modal */}
             {isActivityOpen && (
